@@ -1,0 +1,5 @@
+
+- finishing processing oor for HM2019 and ZU2021
+- make a decision for amount of data removed when GPS loses signal
+- make a decision for what to do about spatial descretization when there is a long time with NAs
+- re-run everything and update figures (+ potentially story...?)

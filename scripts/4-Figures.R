@@ -1,7 +1,7 @@
 library(fields)
 library(correlation)
 
-setwd("C:/Users/baverly/Desktop/Meerkat_leadership_hackathon/INFLUENCE_PAPER")
+setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 source("scripts/functions.R")
 
 discretizationStep <- 10

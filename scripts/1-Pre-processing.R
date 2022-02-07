@@ -1,4 +1,4 @@
-setwd("C:/Users/baverly/Desktop/Meerkat_leadership_hackathon/INFLUENCE_PAPER")
+setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 
 source("scripts/functions.R")
 sessions <- c("HM2017","HM2019","L2019","ZU2021","NQ2021")
@@ -96,6 +96,31 @@ for(session in sessions){
     #crashing times
     allX[,dayIndex(which(dates=="20210811"))][,6000:8000] <- NA
     allY[,dayIndex(which(dates=="20210811"))][,6000:8000] <- NA
+    
+    #playbacks
+    p1 <- which(timeLine=="2021-08-11 07:38:00"):which(timeLine=="2021-08-11 07:40:00")
+    p2 <- which(timeLine=="2021-08-11 07:48:00"):which(timeLine=="2021-08-11 07:50:00")
+    p3 <- which(timeLine=="2021-08-11 07:58:00"):which(timeLine=="2021-08-11 08:00:00")
+    p4 <- which(timeLine=="2021-08-11 08:07:00"):which(timeLine=="2021-08-11 08:09:00")
+    p5 <- which(timeLine=="2021-08-11 09:32:00"):which(timeLine=="2021-08-11 09:34:00")
+    p6 <- which(timeLine=="2021-08-11 09:42:00"):which(timeLine=="2021-08-11 09:44:00")
+    
+    p7 <- which(timeLine=="2021-08-14 07:47:00"):which(timeLine=="2021-08-14 07:49:00")
+    p8 <- which(timeLine=="2021-08-14 07:57:00"):which(timeLine=="2021-08-14 07:59:00")
+    p9 <- which(timeLine=="2021-08-14 08:06:00"):which(timeLine=="2021-08-14 08:08:00")
+    p10 <- which(timeLine=="2021-08-14 08:16:00"):which(timeLine=="2021-08-14 08:18:00")
+    p11 <- which(timeLine=="2021-08-14 08:46:00"):which(timeLine=="2021-08-14 08:48:00")
+    p12 <- which(timeLine=="2021-08-14 08:57:00"):which(timeLine=="2021-08-14 08:59:00")
+    p13 <- which(timeLine=="2021-08-14 09:06:00"):which(timeLine=="2021-08-14 09:08:00")
+    p14 <- which(timeLine=="2021-08-14 09:18:00"):which(timeLine=="2021-08-14 09:20:00")
+    p15 <- which(timeLine=="2021-08-14 09:37:00"):which(timeLine=="2021-08-14 09:39:00")
+    p16 <- which(timeLine=="2021-08-14 09:46:00"):which(timeLine=="2021-08-14 09:48:00")
+    
+    playbacks <- c(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16)
+    
+    allX[,playbacks] <- NA
+    allY[,playbacks] <- NA
+    
   }
   
   #----REMOVING ALARM EVENTS FROM SCAN DATA----

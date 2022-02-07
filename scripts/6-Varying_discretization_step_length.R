@@ -1,6 +1,6 @@
 
 
-setwd("C:/Users/baverly/Desktop/Meerkat_leadership_hackathon/INFLUENCE_PAPER")
+setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 source('scripts/functions.R')
 
 sessions <- c('HM2017','HM2019','L2019','ZU2021',"NQ2021")
