@@ -24,6 +24,8 @@ discretizationStep = 10 #lag for the spatial discretization (in meters) - defaul
 
 for(discretizationStep  in c(5,15,20)){
   
+  print(paste("----Starting analysis with ",discretizationStep,"m discretization----"))
+  
   print('starting pre-processing')
   spatialMetrics <- data.frame()
   for(session in sessions){
@@ -45,8 +47,8 @@ for(discretizationStep  in c(5,15,20)){
     sessionTable$statusUniqID <- paste(sessionTable$session, sessionTable$status, sep = '_')
     
     #computing a bunch of individual and group spatial measures from the past and the future
-    spatialPast <- relativePos(allX,allY,step=discretizationStep,discrSpatial=T,futur=F,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based on past
-    spatialFutur <- relativePos(allX,allY,step=discretizationStep,discrSpatial=T,futur=T,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based in future
+    spatialPast <- relativePos(x=allX,y=allY,step=discretizationStep,discrSpatial=T,futur=F,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based on past
+    spatialFutur <- relativePos(x=allX,y=allY,step=discretizationStep,discrSpatial=T,futur=T,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based in future
     
     spatialPastNoRemove <- relativePos(allX,allY,step=discretizationStep,discrSpatial=T,futur=F,timeline=timeLine,discrByCentroid=T,centroidSpeed = T, removeInd = F) #metrics based on past
     rankAlongAxis <- apply(spatialPastNoRemove$relative_ind_X,2,normalize)
@@ -266,6 +268,6 @@ for(discretizationStep  in c(5,15,20)){
   modelParam_MovSpeed$inflScore <- flatLogis1Variable(modelParam_MovSpeed$quantile90,modelParam_MovSpeed$alpha,modelParam_MovSpeed$beta,modelParam_MovSpeed$gamma)
   
   
-  save(modelParam_Total,modelParam_PosTurn,modelParam_MovTurn,modelParam_PosSpeed,modelParam_MovSpeed,file=paste0("output/Influence_logistic_modelFits_",discretizationStep,"m.RData"))
+  save(modelParam_Total,modelParam_PosTurn,modelParam_MovTurn,modelParam_PosSpeed,modelParam_MovSpeed,file=paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"))
 
 }

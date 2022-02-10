@@ -31,7 +31,7 @@ dayIndex <- function(day){
 }
 
 #calculating various group- and individual- level spatial metrics 
-#input: two matrices of coordinates (one for x, one for y), with rows= inds (N), col=time frames (T)
+#input: two matrices of UTM coordinates (one for x, one for y), with rows= inds (N), col=time frames (T)
 #       discrSpatial: boolean, whether to calculate speed etc with time intervals or using spatial discretization
 #       step:  the step used to calculate the velocity vectors, 
 #              either in seconds for temporal discretization (if discrSpatial is True) 
@@ -200,9 +200,16 @@ relativePos <- function(x,y,discrSpatial=F,step,accelerationStep = 10,futur=T,no
 }
 
 
-#spatial discretization
-spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),chunkSize=200,referenceX=x,referenceY=y){
-  
+#computing spatial discretization of a trajectory
+#inputs: Two vector of coordinates (x and y) of the same length
+#        step: the distance used as threshold for discretization
+#       futur: boolean, whether to calculate speed, direction etc... further or backward
+#       timeLine: vector of timeStamps to be used if there are several days  
+#       chunkSize: number of distances which are calculated at the same time. Fiddling woth this can make the function run faster or slwoer, normaly default works quite well
+#       referenceX and referenceY: optional trajectory to use as reference
+#       buffer: within which range should the distance be acceptable (mainly relevant if there are NAs in the data). Range is from (step-buffer*step) to (step+buffer*step)
+spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),chunkSize=200,referenceX=x,referenceY=y,buffer=0.25,useBuffer=T){
+
   totalTime <- length(x)
   dayFactor <- factor(substr(timeline,1,10))
   
@@ -222,14 +229,15 @@ spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),c
         }
         
         t = i + 1
-        reachEnd = F
-        findDist = F
+        findDist = F # whether the step distance has been reached
+        reachEnd = F # whether the end of the vector has been reached
+        overShoot = F # whether the first distance bigger than step is too big (as decided by the buffer argument)
         
         #calculate distances until dist threshold or end of vector is reached
-        while(!findDist & !reachEnd){
+        while(!findDist & !reachEnd & !overShoot){
           
           chunk <- chunkSize
-          if(t+chunk > end){
+          if(t+chunk >= end){ #if the end has been reached
             chunk <- end - t
             reachEnd = T
           }
@@ -237,18 +245,40 @@ spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),c
           #calculating distances with current timepoint in batches of size chunk
           dists <- sqrt((x[t:(t+chunk)]-referenceX[i])^2 + (y[t:(t+chunk)]-referenceY[i])^2)
           
-          if(any(dists >= step,na.rm=T)){
-            vec[match(i,idx)] <- t + head(which(dists >= step),1) - 1
-            findDist = T
-          }else if(reachEnd){
-            vec[match(i,idx)] <- NA
+          if(any(dists >= step,na.rm=T)){ #if there is at least one distance that is bigger than step
+            
+            reachDist =  head(which(dists >= step),1) #index of that distance in the current chunk
+            
+            if(useBuffer & dists[reachDist] > (step + buffer*step)){ #if the distance is too big
+              
+              if(any(dists < step & dists >= (step - buffer*step),na.rm=T)){ #we check if there is a smaller distance within the buffer range
+                vec[match(i,idx)] =  t + head(which(dists >= (step - buffer*step)),1) - 1
+                findDist = T
+              }else{ #otherwise we store NA
+                vec[match(i,idx)] <- NA
+                overShoot <- T
+              }
+              
+            }else if(!findDist){ #otherwise we store the index of the distance
+              vec[match(i,idx)] <- t + reachDist - 1
+              findDist = T
+            }
+         
+          }else if(reachEnd){ #if we reached the end
+            
+            if(any(dists >= (step - buffer*step),na.rm=T)){
+              vec[match(i,idx)] =  t + head(which(dists >= (step - buffer*step)),1) - 1
+            }else{
+              vec[match(i,idx)] <- NA
+            }
           }
+          
           t = t+chunk+1
         }
       }
     }else{
+      
       for(i in rev(idx[-1])){
-        
         
         if(is.na(referenceX[i])){
           vec[match(i,idx)] <- NA
@@ -256,13 +286,14 @@ spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),c
         }
         
         t = i - 1
-        reachStart = F
-        findDist = F
+        findDist = F # whether the step distance has been reached
+        reachStart = F # whether the end of the vector has been reached
+        overShoot = F # whether the first distance bigger than step is too big (as decided by the buffer argument)
         
-        while(!reachStart & !findDist){
+        while(!reachStart & !findDist & !overShoot){
           
           chunk <- chunkSize
-          if(t-chunk < idx[1]){
+          if(t-chunk <= idx[1]){
             chunk <- t - idx[1]
             reachStart = T
           }
@@ -270,10 +301,31 @@ spatialDiscr <- function(x,y,step,futur=T,timeline=rep("1970-01-01",length(x)),c
           dists <- sqrt((x[t:(t-chunk)]-referenceX[i])^2 + (y[t:(t-chunk)]-referenceY[i])^2)
           
           if(any(dists >= step,na.rm=T)){
-            vec[match(i,idx)] <- t - head(which(dists >= step),1) + 1
-            findDist = T
-          }else if(reachStart){
-            vec[match(i,idx)] <- NA
+            
+            reachDist =  head(which(dists >= step),1) 
+            
+            if(useBuffer & dists[reachDist] > (step + buffer*step)){ #if the distance is too big
+              
+              if(any(dists < step & dists >= (step - buffer*step),na.rm=T)){ #we check if there is a smaller distance within the buffer range
+                vec[match(i,idx)] =  t - head(which(dists >= (step - buffer*step)),1) + 1
+                findDist = T
+              }else{ #otherwise we store NA
+                vec[match(i,idx)] <- NA
+                overShoot <- T
+              }
+              
+            }else if(!findDist){ #otherwise we store the index of the distance
+              vec[match(i,idx)] <- t - reachDist + 1
+              findDist = T
+            }
+            
+          }else if(reachStart){ #if we reached the start
+            
+            if(any(dists >= (step - buffer*step),na.rm=T)){
+              vec[match(i,idx)] =  t - head(which(dists >= (step - buffer*step)),1) + 1
+            }else{
+              vec[match(i,idx)] <- NA
+            }
           }
           t = t-chunk-1
         }

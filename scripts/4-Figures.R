@@ -65,7 +65,7 @@ yAx <- rev(1:nrow(modelParam_MovTurn))*spacing - match(modelParam_MovTurn$sessio
 yAx <- yAx + abs(min(yAx))
 pntSize = normalize(modelParam_MovTurn$N,1,3)
 
-plot(NULL,xlim=c(min(modelParam_MovTurn$inflScore-0.05),max(modelParam_MovTurn$inflScore+0.1)),ylim=c(1,max(yAx)-1),yaxt="n",ylab="",xlab="Movement turning influence score",
+plot(NULL,xlim=c(min(modelParam_MovTurn$inflScore-0.05),max(modelParam_MovTurn$inflScore+0.1)),ylim=c(1,max(yAx)-1),yaxt="n",ylab="",xlab="Turning influence score",
      main="",cex.axis=2,cex.lab=2.3)
 for(i in 1:nrow(modelParam_MovTurn)){
   
@@ -99,7 +99,7 @@ yAx <- rev(1:nrow(modelParam_MovSpeed))*spacing - match(modelParam_MovSpeed$sess
 yAx <- yAx + abs(min(yAx))
 pntSize = normalize(modelParam_MovSpeed$N,1,3)
 
-plot(NULL,xlim=c(min(modelParam_MovSpeed$inflScore-0.1),max(modelParam_MovSpeed$inflScore+0.05)),ylim=c(1,max(yAx)-1),yaxt="n",ylab="",xlab="Movement speeding influence score",
+plot(NULL,xlim=c(min(modelParam_MovSpeed$inflScore-0.1),max(modelParam_MovSpeed$inflScore+0.05)),ylim=c(1,max(yAx)-1),yaxt="n",ylab="",xlab="Speeding influence score",
      main="",cex.axis=2,cex.lab=2.3)
 for(i in 1:nrow(modelParam_MovSpeed)){
   
