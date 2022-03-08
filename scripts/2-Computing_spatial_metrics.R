@@ -105,7 +105,7 @@ spatialMetrics$inFrontQuarter <- abs(spatialMetrics$indAngleFromGroupMovement) <
 spatialMetrics$groupSpeedsUp <- as.numeric(spatialMetrics$groupSpeedUpAlongGroupAxis > 0)
 
 #binary, whether group turned right or not
-spatialMetrics$groupTurnsRight <- spatialMetrics$groupFuturVecPerpToGroupAxis < 0
+spatialMetrics$groupTurnsRight <- as.numeric(spatialMetrics$groupFuturVecPerpToGroupAxis < 0)
 
 #Individul left-right position
 spatialMetrics$leftRightPosition <- -spatialMetrics$relY

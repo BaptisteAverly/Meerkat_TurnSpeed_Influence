@@ -55,13 +55,21 @@ allInd <- allIndInfo$uniqueID
 #overall probability to speed up for each group
 pGroupSpeedUp <- tapply(spatialMetrics$groupSpeedsUp[tlIdx], spatialMetrics$session[tlIdx],mean,na.rm=T)
 
-modelParam_PosTurn <- modelParam_MovTurn <- modelParam_PosSpeed <- modelParam_MovSpeed <- data.frame(ind=allIndInfo$uniqueID,session=allIndInfo$session,status=allIndInfo$status,N=NA,alpha=NA,beta=NA,gamma=NA,likelihood=NA)
+quantileValue = 0.9
+
+quantileLeftRightPos <- tapply(abs(spatialMetrics$leftRightPosition),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
+quantileLeftRightMov <- tapply(abs(spatialMetrics$leftRightMovement),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
+quantileFrontBackPos <- tapply(abs(spatialMetrics$frontBackPosition),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
+quantileFrontBackMov <- tapply(abs(spatialMetrics$frontBackMovement),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
+
+modelParam_PosTurn <- modelParam_MovTurn <- modelParam_PosSpeed <- modelParam_MovSpeed <- data.frame(ind=allIndInfo$uniqueID,session=allIndInfo$session,status=allIndInfo$status,N=NA,alpha=NA,beta=NA,gamma=NA,likelihood=NA,quantile90=NA,inflScore=NA)
 for(ind in allInd){
   
   print(ind)
   
   indIdx <- which(allInd==ind)
   session <- allIndInfo$session[which(allIndInfo$uniqueID==ind)]
+  sessionIdx <- which(sessions == session)
   indData <-  spatialMetrics[which(spatialMetrics$indUniqID==ind),]
   
   #position turning influence
@@ -80,6 +88,8 @@ for(ind in allInd){
   modelParam_PosTurn$beta[indIdx] <- optim$par[2]
   modelParam_PosTurn$gamma[indIdx] <- gamma
   modelParam_PosTurn$likelihood[indIdx] <- optim$value
+  modelParam_PosTurn$quantile90[indIdx] <- quantileLeftRightPos[sessionIdx]
+  modelParam_PosTurn$inflScore[indIdx] <- flatLogis1Variable(quantileLeftRightPos[sessionIdx],optim$par[1],optim$par[2],gamma)
   
   #movement turning influence
   data <- data.frame(x=indData$leftRightMovement,y=as.numeric(indData$groupTurnsRight))
@@ -93,6 +103,8 @@ for(ind in allInd){
   modelParam_MovTurn$beta[indIdx] <- optim$par[2]
   modelParam_MovTurn$gamma[indIdx] <- gamma
   modelParam_MovTurn$likelihood[indIdx] <- optim$value
+  modelParam_MovTurn$quantile90[indIdx] <- quantileLeftRightMov[sessionIdx]
+  modelParam_MovTurn$inflScore[indIdx] <- flatLogis1Variable(quantileLeftRightMov[sessionIdx],optim$par[1],optim$par[2],gamma)
   
   #position speeding influence
   data <- data.frame(x=indData$frontBackPosition,y=as.numeric(indData$groupSpeedsUp))
@@ -106,12 +118,14 @@ for(ind in allInd){
   modelParam_PosSpeed$beta[indIdx] <- optim$par[2]
   modelParam_PosSpeed$gamma[indIdx] <- gamma
   modelParam_PosSpeed$likelihood[indIdx] <- optim$value
+  modelParam_PosSpeed$quantile90[indIdx] <- quantileFrontBackPos[sessionIdx]
+  modelParam_PosSpeed$inflScore[indIdx] <- flatLogis1Variable(quantileFrontBackPos[sessionIdx],optim$par[1],optim$par[2],gamma)
   
   #movement speeding influence
   data <- data.frame(x=indData$frontBackMovement,y=as.numeric(indData$groupSpeedsUp))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   
-  gamma <- pGroupSpeedUp[which(names(pGroupSpeedUp)==session)]
+  gamma <- pGroupSpeedUp[sessionIdx]
   optim <- optim(par=c(0.5,0.5),fn=logLikelihood1Variable,data=data,fun=flatLogis1Variable,gamma=gamma)
   
   modelParam_MovSpeed$N[indIdx] <- nrow(data)
@@ -119,6 +133,8 @@ for(ind in allInd){
   modelParam_MovSpeed$beta[indIdx] <- optim$par[2]
   modelParam_MovSpeed$gamma[indIdx] <- gamma
   modelParam_MovSpeed$likelihood[indIdx] <- optim$value
+  modelParam_MovSpeed$quantile90[indIdx] <- quantileFrontBackMov[sessionIdx]
+  modelParam_MovSpeed$inflScore[indIdx] <- flatLogis1Variable(quantileFrontBackMov[sessionIdx],optim$par[1],optim$par[2],gamma)
   
 }
 
@@ -126,25 +142,6 @@ modelParam_PosTurn <- modelParam_PosTurn[which(!is.na(modelParam_PosTurn$alpha))
 modelParam_MovTurn <- modelParam_MovTurn[which(!is.na(modelParam_MovTurn$alpha)),]
 modelParam_PosSpeed <- modelParam_PosSpeed[which(!is.na(modelParam_PosSpeed$alpha)),]
 modelParam_MovSpeed <- modelParam_MovSpeed[which(!is.na(modelParam_MovSpeed$alpha)),]
-
-
-quantileValue = 0.9
-
-quantileLeftRightPos <- tapply(abs(spatialMetrics$leftRightPosition),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
-quantileLeftRightMov <- tapply(abs(spatialMetrics$leftRightMovement),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
-quantileFrontBackPos <- tapply(abs(spatialMetrics$frontBackPosition),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
-quantileFrontBackMov <- tapply(abs(spatialMetrics$frontBackMovement),spatialMetrics$session,quantile,probs=quantileValue,na.rm=T)
-
-modelParam_PosTurn$quantile90 <- rep(quantileLeftRightPos,as.numeric(table(modelParam_PosTurn$session)))
-modelParam_MovTurn$quantile90 <- rep(quantileLeftRightMov,as.numeric(table(modelParam_MovTurn$session)))
-modelParam_PosSpeed$quantile90 <- rep(quantileFrontBackPos,as.numeric(table(modelParam_PosSpeed$session)))
-modelParam_MovSpeed$quantile90 <- rep(quantileFrontBackMov,as.numeric(table(modelParam_MovSpeed$session)))
-
-modelParam_PosTurn$inflScore <- flatLogis1Variable(modelParam_PosTurn$quantile90,modelParam_PosTurn$alpha,modelParam_PosTurn$beta,modelParam_PosTurn$gamma)
-modelParam_MovTurn$inflScore <- flatLogis1Variable(modelParam_MovTurn$quantile90,modelParam_MovTurn$alpha,modelParam_MovTurn$beta,modelParam_MovTurn$gamma)
-modelParam_PosSpeed$inflScore <- flatLogis1Variable(modelParam_PosSpeed$quantile90,modelParam_PosSpeed$alpha,modelParam_PosSpeed$beta,modelParam_PosSpeed$gamma)
-modelParam_MovSpeed$inflScore <- flatLogis1Variable(modelParam_MovSpeed$quantile90,modelParam_MovSpeed$alpha,modelParam_MovSpeed$beta,modelParam_MovSpeed$gamma)
-
 
 save(modelParam_Total,modelParam_PosTurn,modelParam_MovTurn,modelParam_PosSpeed,modelParam_MovSpeed,file=paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"))
 
