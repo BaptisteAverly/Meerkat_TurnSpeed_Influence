@@ -174,6 +174,7 @@ for(session in sessions){
   
   obj <- simplifyNames(paste0(session,"_"),reverse= T,items = shortNames)
   
+  dir.create(path="data/movement/level1",showWarnings = F)
   save(list=obj,file=paste0("data/movement/level1/",session,"_COORDINATES_SYNCHED_level1.RData"))
 }
 

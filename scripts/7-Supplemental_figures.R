@@ -20,8 +20,11 @@ lwd=4
 
 allInd <- modelParam_MovTurn$ind
 
+dir.create(path="data/SuppMat/",showWarnings = F)
+
 #----POSITIONAL TURN INFLUENCE SCORES----
 
+dir.create(path="data/SuppMat/positional_turn_and_speed_influence/",showWarnings = F)
 if(saveImage)pdf(file = "figures/SuppMat/positional_turn_and_speed_influence/Positional_turn_influence_scores.pdf", width = 20, height = 35)
 
 par(mfrow=c(1,1), mar=c(5,6.3,4,2),cex=cex)
@@ -80,6 +83,7 @@ if(saveImage)dev.off()
 
 #----HEATMAP OF THE PROBABILITY OF THE GROUP TO TURN RIGHT AS A FUNCTION OF LEFT-RIGHT POSITION AND LEFT-RIGHT MOVEMENT----
 
+dir.create(path="data/SuppMat/two_predictors_models/",showWarnings = F)
 if(saveImage)pdf(file = "figures/SuppMat/two_predictors_models/allGroups_turningHeatMap.pdf", width = 11, height = 10)
 
 par(mfrow=c(1,1), mar=c(5,5,4,6))
@@ -119,6 +123,7 @@ allDistances <- list()
 
 for(session in sessions){
   
+  dir.create(path="data/SuppMat/distributions/",showWarnings = F)
   if(saveImage)png(filename = paste0("figures/SuppMat/distributions/groupSpread_",session,".png"), width = 1000, height = 1000)
   
   par(mfrow=c(1,1), mar=c(5,5,4,2))
@@ -183,6 +188,7 @@ for(discretizationStep in c(5,10,15,20)){
   
   #movement turn influence scores
   
+  dir.create(path="data/SuppMat/varying_discretization_step_length/",showWarnings = F)
   if(saveImage)pdf(file = paste0("figures/SuppMat/varying_discretization_step_length/Movement_turn_influence_scores_",discretizationStep,"m.pdf"),width = 20, height = 35)
   
   par(mfrow=c(1,1), mar=c(5,6.3,4,2),cex=cex)
@@ -288,6 +294,7 @@ for(ind in allInd){
   session <- allIndInfo$session[which(allIndInfo$uniqueID==ind)]
   indData <-  spatialMetrics[which(spatialMetrics$indUniqID==ind),]
   
+  dir.create(path="data/SuppMat/individual_logistic_fits/",showWarnings = F)
   if(saveImage)png(filename = paste0("figures/SuppMat/individual_logistic_fits/",ind,"_logisticFit.png"), width = 1000, height = 1000)
   par(mfrow=c(2,2), mar=c(5,5,4,2))
   

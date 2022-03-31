@@ -23,6 +23,8 @@ cex=2.5
 
 plotCIs = T
 
+dir.create(path="data/figures/",showWarnings = F)
+
 #----MOVEMENT TURNING INFLUENCE SCORES----
 
 if(saveImage)pdf(file = "figures/Turn_influence_scores.pdf", width = 20, height = 35)

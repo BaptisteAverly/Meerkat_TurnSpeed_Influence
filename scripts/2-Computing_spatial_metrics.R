@@ -123,6 +123,7 @@ spatialMetrics$frontBackMovement <- spatialMetrics$indGroupSpeedDiffAlongGroupAx
 spatialMetrics$t <- as.POSIXct(spatialMetrics$t,tz="UTC")
 spatialMetrics <- spatialMetrics[order(spatialMetrics$t),]
 
+dir.create(path="output/",showWarnings = F)
 save(file = paste0('output/spatialMetrics_',discretizationStep,'m.RData'), list = c('spatialMetrics','allIndInfo'))
 
 
