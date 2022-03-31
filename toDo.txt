@@ -1,7 +1,0 @@
-
-- finishing processing oor for HM2019 and ZU2021 --- DONE
-- make a decision for amount of data removed when GPS loses signal --- DONE
-- make a decision for what to do about spatial discretization when there is a long time with NAs --- DONE
-- remove NQ playbacks --- DONE
-
-- re-run everything and update figures (+ potentially story...?)

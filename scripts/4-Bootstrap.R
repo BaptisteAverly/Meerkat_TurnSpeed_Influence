@@ -1,3 +1,6 @@
+#THE PURPOSE OF THIS SCRIPT IS TO GET CONFIDENCE INTERVALS ON THE INFLUENCE SCORES BY BOOTSTRAPPING THE DATA
+#IT FIRST LOOKS AT THE DISTRIBUTION OF AUTOCORELATION LAG FOR THE TURN AND SPEED INFLUENCE ACROSSE DATES AND INDIVIDUALS
+#THEN USES THE MEAN OF THESE DISTRIBUTIONS AS THE SIZE OF DATA CHUNKS THAT ARE DRAWN DURING THE BOOTSTRAP
 
 setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 source("scripts/functions.R")
@@ -12,51 +15,64 @@ status = c("DominantF","DominantM","Adult","Yearling","Sub-Adult")
 tlIdx <- match(unique(spatialMetrics$t),spatialMetrics$t)
 
 
-#spatialMetrics$groupTurnsRight <- as.numeric(spatialMetrics$groupTurnsRight)
-#spatialMetrics$groupTurnsRight[which(spatialMetrics$groupTurnsRight==0)] <- -1
-#spatialMetrics$groupSpeedsUp[which(spatialMetrics$groupSpeedsUp==0)] <- -1
-#
-#spatialMetrics$movTurn <- sign(spatialMetrics$leftRightMovement) * sign(spatialMetrics$groupTurnsRight)
-#spatialMetrics$movSpeed <- sign(spatialMetrics$frontBackMovement) * sign(spatialMetrics$groupSpeedsUp)
-#
-#autoCorr <- data.frame(matrix(ncol=3,nrow=0))
-#colnames(autoCorr) <- c("ind","date","lag")
-#  
-#for(ind in unique(spatialMetrics$indUniqID)){
-#  
-#  indData <- spatialMetrics[which(spatialMetrics$indUniqID==ind),]
-#  
-#  indData <- indData[order(as.POSIXct(spatialMetrics$t,tz="UTC")),]
-#  
-#  for(d in unique(indData$date)){
-#    
-#    subDate <- indData[which(indData$date==d),]
-#    
-#    if(length(which(!is.na(subDate$movTurn)))>0){
-#      
-#      series <- subDate$movTurn
-#      
-#      corr <- acf(series,na.action=na.pass,lag.max=600,main=ind)
-#      
-#      significance <- qnorm((1 + 0.95)/2)/sqrt(sum(!is.na(series)))
-#      
-#      idx <- nrow(autoCorr)+1
-#      autoCorr[idx,] <- NA
-#      autoCorr$ind[idx] <- ind
-#      autoCorr$date[idx] <- d
-#      lag <- head(which(corr$acf<significance),1)
-#      if(length(lag>0)){
-#        autoCorr$lag[idx] <- lag
-#      }else{
-#        autoCorr$lag[idx] <- NA
-#      }
-#    }
-#  }
-#}
+# ----Selecting an appropriate chunk size for the bootstrap by looking at the autocorrelation lag of the turn and speed influence----
+
+spatialMetrics$movTurn <- as.numeric((spatialMetrics$leftRightMovement>0) == spatialMetrics$groupTurnsRight)
+spatialMetrics$movSpeed <- as.numeric((spatialMetrics$frontBackMovement>0) == spatialMetrics$groupSpeedsUp)
+
+autoCorr <- data.frame(matrix(ncol=4,nrow=0))
+colnames(autoCorr) <- c("ind","date","lagTurn","lagSpeed")
+  
+for(ind in unique(spatialMetrics$indUniqID)){
+  
+  indData <- spatialMetrics[which(spatialMetrics$indUniqID==ind),]
+  
+  indData <- indData[order(as.POSIXct(indData$t,tz="UTC")),]
+  
+  for(d in unique(indData$date)){
+    
+    subDate <- indData[which(indData$date==d),]
+    
+    if(length(which(!is.na(subDate$movTurn)))>0){
+      
+      seriesTurn <- subDate$movTurn
+      seriesSpeed <- subDate$movSpeed
+      
+      corrTurn <- acf(seriesTurn,na.action=na.pass,lag.max=1500,main=ind)
+      corrSpeed <- acf(seriesSpeed,na.action=na.pass,lag.max=1500,main=ind)
+      
+      significanceTurn <- qnorm((1 + 0.95)/2)/sqrt(sum(!is.na(seriesTurn)))
+      significanceSpeed <- qnorm((1 + 0.95)/2)/sqrt(sum(!is.na(seriesSpeed)))
+      
+      idx <- nrow(autoCorr)+1
+      autoCorr[idx,] <- NA
+      autoCorr$ind[idx] <- ind
+      autoCorr$date[idx] <- d
+      lagTurn <- head(which(corrTurn$acf<significanceTurn),1)
+      lagSpeed <- head(which(corrSpeed$acf<significanceSpeed),1)
+      if(length(lagTurn>0)){
+        autoCorr$lagTurn[idx] <- lagTurn
+      }else{
+        autoCorr$lagTurn[idx] <- NA
+      }
+      if(length(lagSpeed>0)){
+        autoCorr$lagSpeed[idx] <- lagSpeed
+      }else{
+        autoCorr$lagSpeed[idx] <- NA
+      }
+    }
+  }
+}
+
+#mean autocorrelation lag, that we are going to use as chunck size for the bootstrapping
+print(mean(autoCorr$lagTurn,na.rm=T))
+print(mean(autoCorr$lagSpeed,na.rm=T))
 
 
-chunk <- 240
-iter <- 1000
+#----Performing the bootstrap----
+
+chunk <- 240 #rounding it to a full minute to make it easier for the bootstrapping
+iter <- 1000 #number of iterations
 
 movTurn_list <- movSpeed_list <- data.frame(ind=allIndInfo$uniqueID,session=allIndInfo$session,status=allIndInfo$status,N=NA,alpha=NA,beta=NA,gamma=NA,likelihood=NA)
 movTurn_list <- lapply(1:iter, function(x) movTurn_list)
@@ -82,16 +98,19 @@ for(ind in allInd){
   
   if(all(is.na(indData$leftRightMovement)))next()
   
+  #splitting the data into chunks of size chunk
   fact <- factor(rep(1:(totT/chunk),each=chunk))
-  
   splittedX <- split(indData$leftRightMovement,fact)
   splittedIdx <- split(1:totT,fact)
   
+  #only drawing from chunks that don't have only NAs
   drawFrom <- as.vector(which(sapply(splittedX,function(f)!all(is.na(f)))))
 
   for(i in 1:iter){
     
     print(i)
+    
+    #for each iteration, drawing N chunks with replacement, then recomputing the influence scores
     boot <- as.vector(unlist(splittedIdx[sample(drawFrom,length(drawFrom),replace=T)]))
     
     #movement turning influence
@@ -134,6 +153,7 @@ for(i in 1:iter){
   
 }
 
+#getting the 0.05-0.95% quantile of the influence score distribution from the bootstrap
 modelParam_MovTurn$lowerCI <- sapply(1:nrow(modelParam_MovTurn),function(ind)quantile(sapply(movTurn_list,function(f)f[ind,"inflScore"]),0.05))
 modelParam_MovTurn$upperCI <- sapply(1:nrow(modelParam_MovTurn),function(ind)quantile(sapply(movTurn_list,function(f)f[ind,"inflScore"]),0.95))
 modelParam_MovSpeed$lowerCI <- sapply(1:nrow(modelParam_MovSpeed),function(ind)quantile(sapply(movSpeed_list,function(f)f[ind,"inflScore"]),0.05))

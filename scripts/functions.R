@@ -393,7 +393,6 @@ focalDistances<-function(x,y,focal=1,keepFocal=T){
 }
 
 # "flattened logistic" functions = our model:
-
 flatLogis2Variables <- function(x1,x2=0,alpha,beta1,beta2=0,gamma=0.5){
   a <- alpha * (1/(1+exp(-(beta1*x1 + beta2*x2)))-0.5+gamma) + (1-alpha)*gamma
   if(any(a<=0))a[which(a<=0)] <- .Machine$double.eps
@@ -409,7 +408,6 @@ flatLogis1Variable <- function(x,alpha,beta,gamma=0.5){
 }
 
 #log likelihood = optimizers:
-
 logLikelihood2Variables <- function(par,data,fun,...){
   -sum( log(fun(data$x1,data$x2,par[1],par[2],par[3],...) * data$y + (1-fun(data$x1,data$x2,par[1],par[2],par[3],...)) * (1-data$y)))
 }

@@ -1,3 +1,5 @@
+#THE PURPOSE OF THIS SCRIPT IS TO MODEL INDIVIDUAL TURN AND SPEED INFLUENCE USING A MODIFIED LOGISTIC REGRESSION FUNCTION
+#THEN USE THESE MODEL FITS TO GET INDIVIDUAL TURN AND SPEED INFLUENCE SCORES
 
 setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 source("scripts/functions.R")
@@ -47,7 +49,7 @@ modelParam_Total$gamma[2] <- gamma2
 modelParam_Total$likelihood[2] <- optim2$value
 
 
-#----MODELLING OF POSITION TURNING INFLUENCE, MOVEMENT TURNING INFLUENCE, POSITION SPEEDING INFLUENCE, MOVEMENT SPEEDING INFLUENCE(SEPARETELLY FOR EACH INDIVIDUAL)----
+#----MODELLING OF POSITION TURN INFLUENCE, MOVEMENT TURN INFLUENCE, POSITION SPEED INFLUENCE, MOVEMENT SPEED INFLUENCE(SEPARETELLY FOR EACH INDIVIDUAL)----
 
 
 allInd <- allIndInfo$uniqueID
@@ -72,7 +74,7 @@ for(ind in allInd){
   sessionIdx <- which(sessions == session)
   indData <-  spatialMetrics[which(spatialMetrics$indUniqID==ind),]
   
-  #position turning influence
+  #position turn influence
   data <- data.frame(x=indData$leftRightPosition,y=as.numeric(indData$groupTurnsRight))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   
@@ -91,7 +93,7 @@ for(ind in allInd){
   modelParam_PosTurn$quantile90[indIdx] <- quantileLeftRightPos[sessionIdx]
   modelParam_PosTurn$inflScore[indIdx] <- flatLogis1Variable(quantileLeftRightPos[sessionIdx],optim$par[1],optim$par[2],gamma)
   
-  #movement turning influence
+  #movement turn influence
   data <- data.frame(x=indData$leftRightMovement,y=as.numeric(indData$groupTurnsRight))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   
@@ -106,7 +108,7 @@ for(ind in allInd){
   modelParam_MovTurn$quantile90[indIdx] <- quantileLeftRightMov[sessionIdx]
   modelParam_MovTurn$inflScore[indIdx] <- flatLogis1Variable(quantileLeftRightMov[sessionIdx],optim$par[1],optim$par[2],gamma)
   
-  #position speeding influence
+  #position speed influence
   data <- data.frame(x=indData$frontBackPosition,y=as.numeric(indData$groupSpeedsUp))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   
@@ -121,7 +123,7 @@ for(ind in allInd){
   modelParam_PosSpeed$quantile90[indIdx] <- quantileFrontBackPos[sessionIdx]
   modelParam_PosSpeed$inflScore[indIdx] <- flatLogis1Variable(quantileFrontBackPos[sessionIdx],optim$par[1],optim$par[2],gamma)
   
-  #movement speeding influence
+  #movement speed influence
   data <- data.frame(x=indData$frontBackMovement,y=as.numeric(indData$groupSpeedsUp))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   

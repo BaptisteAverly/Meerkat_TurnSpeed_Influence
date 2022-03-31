@@ -1,3 +1,6 @@
+# THE PURPOSE OF THIS SCRIPT IS TO CLEAN THE DATA
+# IT IS REMOVING MOMENTS THAT WOULD NOT REFLECT TYPICAL MEERKAT GROUP MOVEMENT AS DETAILED IN THE MAIN TEXT
+
 setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 
 source("scripts/functions.R")
@@ -36,7 +39,6 @@ for(session in sessions){
   goodDays <- which(tapply(1:length(timeLine),substr(timeLine,1,10),function(idx){
     !all(is.na(allX[,idx]))
   }))
-  
   keep <- as.vector(sapply(goodDays,function(f)dayIdx[f]:(dayIdx[f+1]-1)))
   allX <- allX[,keep]
   allY <- allY[,keep]

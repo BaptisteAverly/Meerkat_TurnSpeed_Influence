@@ -1,3 +1,4 @@
+#THE PURPOSE OF THIS SCRIPT IS TO COMPUTE GROUP AND INDIVIDUAL SPATIAL METRICS (MAINLY VELOCITY VECTORS) BY SPATIALY DISCRETIZING THE TRAJECTORIES
 
 setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
 source('scripts/functions.R')
@@ -39,7 +40,7 @@ for(session in sessions){
   sessionTable$indUniqID <- paste(sessionTable$session, sessionTable$indIdx, sep = '_')
   sessionTable$statusUniqID <- paste(sessionTable$session, sessionTable$status, sep = '_')
   
-  #computing a bunch of individual and group spatial measures from the past and the future
+  #computing a bunch of individual and group spatial measures from the past and the future using spatial discretization
   spatialPast <- relativePos(allX,allY,step=discretizationStep,discrSpatial=T,futur=F,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based on past
   spatialFutur <- relativePos(allX,allY,step=discretizationStep,discrSpatial=T,futur=T,timeline=timeLine,discrByCentroid=F,centroidSpeed = T, removeInd = T) #metrics based in future
   
