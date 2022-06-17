@@ -22,7 +22,7 @@ cex=2.5
 
 plotCIs = F
 
-dir.create(path="data/figures/",showWarnings = F)
+dir.create(path="figures/",showWarnings = F)
 
 #----DISTRIBUTION OF TIME SPENT IN THE FRONT----
 
