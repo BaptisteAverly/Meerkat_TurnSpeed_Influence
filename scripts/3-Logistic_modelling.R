@@ -1,7 +1,7 @@
 #THE PURPOSE OF THIS SCRIPT IS TO MODEL INDIVIDUAL TURN AND SPEED INFLUENCE USING A MODIFIED LOGISTIC REGRESSION FUNCTION
 #THEN USE THESE MODEL FITS TO GET INDIVIDUAL TURN AND SPEED INFLUENCE SCORES
 
-setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
+setwd("D:/Meerkat_TurnSpeed_Influence")
 source("scripts/functions.R")
 
 discretizationStep <- 10
@@ -11,6 +11,8 @@ load(paste0("output/spatialMetrics_",discretizationStep,"m.RData"))
 sessions <- c("HM2017","HM2019","L2019","ZU2021","NQ2021")
 status = c("DominantF","DominantM","Adult","Yearling","Sub-Adult")
 tlIdx <- match(unique(spatialMetrics$t),spatialMetrics$t)
+
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
 
 #----MODELLING OF GROUP OUTCOME (TURNING OR SPEEDING) AS A FUNCTION OF BOTH POSITION AND MOVEMENT (ALL INDIVDUALS COMBINED)----
 
@@ -48,14 +50,12 @@ modelParam_Total$beta2[2] <- optim2$par[3]
 modelParam_Total$gamma[2] <- gamma2
 modelParam_Total$likelihood[2] <- optim2$value
 
-
 #----MODELLING OF POSITION TURN INFLUENCE, MOVEMENT TURN INFLUENCE, POSITION SPEED INFLUENCE, MOVEMENT SPEED INFLUENCE(SEPARETELLY FOR EACH INDIVIDUAL)----
-
 
 allInd <- allIndInfo$uniqueID
 
 #overall probability to speed up for each group
-pGroupSpeedUp <- tapply(spatialMetrics$groupSpeedsUp[tlIdx], spatialMetrics$session[tlIdx],mean,na.rm=T)
+pGroupSpeedUp <- tapply(spatialMetrics$groupSpeedsUp[tlIdx],spatialMetrics$session[tlIdx],mean,na.rm=T)
 
 quantileValue = 0.9
 
@@ -127,7 +127,7 @@ for(ind in allInd){
   data <- data.frame(x=indData$frontBackMovement,y=as.numeric(indData$groupSpeedsUp))
   data <- data[which(!is.na(data$x) & !is.na(data$y)),]
   
-  gamma <- pGroupSpeedUp[sessionIdx]
+  gamma <- pGroupSpeedUp[which(names(pGroupSpeedUp)==session)]
   optim <- optim(par=c(0.5,0.5),fn=logLikelihood1Variable,data=data,fun=flatLogis1Variable,gamma=gamma)
   
   modelParam_MovSpeed$N[indIdx] <- nrow(data)
@@ -137,7 +137,6 @@ for(ind in allInd){
   modelParam_MovSpeed$likelihood[indIdx] <- optim$value
   modelParam_MovSpeed$quantile90[indIdx] <- quantileFrontBackMov[sessionIdx]
   modelParam_MovSpeed$inflScore[indIdx] <- flatLogis1Variable(quantileFrontBackMov[sessionIdx],optim$par[1],optim$par[2],gamma)
-  
 }
 
 modelParam_PosTurn <- modelParam_PosTurn[which(!is.na(modelParam_PosTurn$alpha)),]

@@ -1,7 +1,7 @@
 #THE PURPOSE OF THIS SCRIPT IS TO CHECK FOR ROBUSTNESS OF THE RESULTS
 #BY RERUNNING THE ANALYSIS WITH DIFFERENT VALUES FOR THE SPATIAL DISCRETIZATION THRESHOLD (5, 15, AND 20 METERS)
 
-setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
+setwd("D:/Meerkat_TurnSpeed_Influence")
 source('scripts/functions.R')
 
 sessions <- c('HM2017','HM2019','L2019','ZU2021',"NQ2021")
@@ -129,6 +129,8 @@ for(discretizationStep  in c(5,15,20)){
   
   spatialMetrics$t <- as.POSIXct(spatialMetrics$t,tz="UTC")
   spatialMetrics <- spatialMetrics[order(spatialMetrics$t),]
+  
+  spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
   
   save(file = paste0('output/spatialMetrics_',discretizationStep,'m.RData'), list = c('spatialMetrics','allIndInfo'))
   

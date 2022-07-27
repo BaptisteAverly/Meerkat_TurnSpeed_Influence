@@ -1,6 +1,6 @@
 #THE PURPOSE OF THIS SCRIPT IS TO COMPUTE GROUP AND INDIVIDUAL SPATIAL METRICS (MAINLY VELOCITY VECTORS) BY SPATIALY DISCRETIZING THE TRAJECTORIES
 
-setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
+setwd("D:/Meerkat_TurnSpeed_Influence")
 source('scripts/functions.R')
 
 sessions <- c('HM2017','HM2019','L2019','ZU2021',"NQ2021") 
@@ -122,6 +122,8 @@ spatialMetrics$frontBackMovement <- spatialMetrics$indGroupSpeedDiffAlongGroupAx
 
 spatialMetrics$t <- as.POSIXct(spatialMetrics$t,tz="UTC")
 spatialMetrics <- spatialMetrics[order(spatialMetrics$t),]
+
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
 
 dir.create(path="output/",showWarnings = F)
 save(file = paste0('output/spatialMetrics_',discretizationStep,'m.RData'), list = c('spatialMetrics','allIndInfo'))

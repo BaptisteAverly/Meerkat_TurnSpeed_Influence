@@ -2,7 +2,7 @@
 #IT FIRST LOOKS AT THE DISTRIBUTION OF AUTOCORELATION LAG FOR THE TURN AND SPEED INFLUENCE ACROSSE DATES AND INDIVIDUALS
 #THEN USES THE MEAN OF THESE DISTRIBUTIONS AS THE SIZE OF DATA CHUNKS THAT ARE DRAWN DURING THE BOOTSTRAP
 
-setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
+setwd("D:/Meerkat_TurnSpeed_Influence")
 source("scripts/functions.R")
 
 discretizationStep <- 10
@@ -14,13 +14,14 @@ sessions <- c("HM2017","HM2019","L2019","ZU2021","NQ2021")
 status = c("DominantF","DominantM","Adult","Yearling","Sub-Adult")
 tlIdx <- match(unique(spatialMetrics$t),spatialMetrics$t)
 
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
 
 # ----Selecting an appropriate chunk size for the bootstrap by looking at the autocorrelation lag of the turn and speed influence----
 
 spatialMetrics$movTurn <- as.numeric((spatialMetrics$leftRightMovement>0) == spatialMetrics$groupTurnsRight)
 spatialMetrics$movSpeed <- as.numeric((spatialMetrics$frontBackMovement>0) == spatialMetrics$groupSpeedsUp)
 
-autoCorr <- data.frame(matrix(ncol=4,nrow=0))
+autoCorr <- data.frame(matrix(ncol=4,nrow=0))yqes
 colnames(autoCorr) <- c("ind","date","lagTurn","lagSpeed")
   
 for(ind in unique(spatialMetrics$indUniqID)){

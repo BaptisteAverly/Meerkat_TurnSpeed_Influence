@@ -2,7 +2,7 @@
 
 library(fields)
 
-setwd("C:/Users/baverly/Desktop/INFLUENCE_PAPER")
+setwd("D:/Meerkat_TurnSpeed_Influence")
 source("scripts/functions.R")
 
 discretizationStep <- 10
@@ -12,6 +12,8 @@ load(paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"
 
 sessions <- c("HM2017","HM2019","L2019","ZU2021","NQ2021")
 status = c("DominantF","DominantM","Adult","Yearling","Sub-Adult")
+
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
 
 statusCol=rev(c("#000000","#900C3F","#C70039","#FF5733","#FFC300"))
 saveImage = T
@@ -186,6 +188,8 @@ for(discretizationStep in c(5,10,15,20)){
   load(paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"))
   load(paste0("output/spatialMetrics_",discretizationStep,"m.RData"))
   
+  spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
+  
   #movement turn influence scores
   
   dir.create(path="figures/SuppMat/varying_discretization_step_length/",showWarnings = F)
@@ -287,6 +291,8 @@ discretizationStep <- 10
 
 load(paste0("output/spatialMetrics_",discretizationStep,"m.RData"))
 load(paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"))
+
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
 
 for(ind in allInd){
   

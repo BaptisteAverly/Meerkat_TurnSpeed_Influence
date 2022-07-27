@@ -15,12 +15,15 @@ load(paste0("output/Influence_logistic_model_fits_",discretizationStep,"m.RData"
 sessions <- c("HM2017","HM2019","L2019","ZU2021","NQ2021")
 status = c("DominantF","DominantM","Adult","Yearling","Sub-Adult")
 
+spatialMetrics$session <- factor(spatialMetrics$session,levels=sessions)
+
 groupCol = hcl.colors(5)
 statusCol=rev(c("#000000","#900C3F","#C70039","#FF5733","#FFC300"))
 saveImage = T
 cex=2.5
 
-plotCIs = F
+plotCIs = T
+format = "png"
 
 dir.create(path="figures/",showWarnings = F)
 
@@ -37,7 +40,11 @@ windowPropFront <- sapply(allInd,function(f){
   as.numeric(tapply(spatialMetrics$inFrontHalf[idx],rep(1:(length(idx)/windowSize),each=windowSize),mean,na.rm=T))
 })
 
-if(saveImage)pdf(file = "figures/PropFront_ridgeLine.pdf", width = 15, height = 20)
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_3.pdf", width = 18, height = 23.5)
+  if(format=="svg")svg(file="figures/Figure_3.svg", width = 18, height = 23.5)
+  if(format=="png")png(file="figures/Figure_3.png", width = 18, height = 23.5,units="in",res=300)
+}
 
 par(mar=c(5,8,4,2),mfrow=c(1,1))
 
@@ -49,7 +56,7 @@ propFrontTable <- propFrontTable[-which(is.na(propFrontTable$x)),]
 colo = statusCol[match(modelParam_MovSpeed$status,status)]
 
 myRidgeline(propFrontTable$x,propFrontTable$y,palette=colo,grouping=modelParam_MovSpeed$session,spacing=2,axes=T,xlab="Proportion of time in the front half",
-            ylab="",meanNotMode = T,mode=T,modeCol="lightblue",yaxt="n",labCex=2,cex.lab=2.3,cex.axis=2)
+            ylab="",meanNotMode = T,mode=T,modeCol="lightblue",yaxt="n",labCex=2,cex.lab=3,cex.axis=2)
 box(lwd=10)
 abline(v=0.5,lty="dashed",lwd=4)
 legend("topright",legend=status,pch=19,col=statusCol,box.lwd=5,cex=2,bg="white")
@@ -64,7 +71,11 @@ qqline(residuals(mod))
 
 #----MOVEMENT TURN INFLUENCE SCORES----
 
-if(saveImage)pdf(file = "figures/Turn_influence_scores.pdf", width = 20, height = 35)
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_2a.pdf", width = 20, height = 33.6)
+  if(format=="svg")svg(file="figures/Figure_2a.svg", width = 20, height = 33.6)
+  if(format=="png")png(file="figures/Figure_2a.png", width = 20, height = 33.6,units="in",res=300)
+}
 
 par(mfrow=c(1,1), mar=c(5,6.3,4,2),cex=cex)
 
@@ -99,7 +110,7 @@ points(xAx,yAx,bg=colo,pch=21,cex=pntSize)
 box(lwd=10)
 sessionLines = yAx[which(diff(yAx)==min(diff(yAx)))]-1
 abline(h=sessionLines,lty="dashed",lwd=5)
-axis(2,at=yAx,gsub("20","",modelParam_MovTurn$ind),tick=F,las=1,cex.axis=1.5)
+axis(2,at=yAx,gsub("20","",modelParam_MovTurn$ind),tick=F,las=1,cex.axis=1.2)
 #legend("topright",legend=status,pch=19,col=statusCol,pt.cex=cex,cex=1.3)
 abline(v=0.5,lty="longdash",lwd=2)
 
@@ -108,6 +119,21 @@ if(saveImage)dev.off()
 #GLMM
 modelParam_MovTurn$propFront <- totPropFront
 modelParam_MovTurn$status <- factor(modelParam_MovTurn$status,levels=status)
+
+#NOT INCLUDING TIME IN FRONT
+
+mod <- lme(inflScore~status,random=~1|session,data=modelParam_MovTurn)
+anova(mod)
+summary(mod)
+qqnorm(residuals(mod))
+qqline(residuals(mod))
+
+#paiwise status comparison
+pairWise <- glht(mod, linfct = mcp(status = "Tukey"))
+summary(pairWise)
+
+#INCLUDING TIME IN FRONT
+
 mod <- lme(inflScore~(status+propFront),random=~1|session,data=modelParam_MovTurn)
 anova(mod)
 summary(mod)
@@ -121,8 +147,11 @@ summary(pairWise)
 
 #----MOVEMENT SPEED INFLUENCE SCORES----
 
-if(saveImage)pdf(file = "figures/Speed_influence_scores.pdf", width = 20, height = 35)
-
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_2b.pdf", width = 20, height = 33.6)
+  if(format=="svg")svg(file="figures/Figure_2b.svg", width = 20, height = 33.6)
+  if(format=="png")png(file="figures/Figure_2b.png", width = 20, height = 33.6,units="in",res=300)
+}
 par(mfrow=c(1,1), mar=c(5,6.3,4,2),cex=cex)
 
 spacing <- 1
@@ -156,7 +185,7 @@ points(xAx,yAx,bg=colo,pch=21,cex=pntSize)
 box(lwd=10)
 sessionLines <- yAx[which(diff(yAx)==-2)]-1
 abline(h=sessionLines,lty="dashed",lwd=5)
-axis(2,at=yAx,gsub("20","",modelParam_MovSpeed$ind),tick=F,las=1,cex.axis=1.5)
+axis(2,at=yAx,gsub("20","",modelParam_MovSpeed$ind),tick=F,las=1,cex.axis=1.2)
 legend("topright",legend=status,pch=19,col=statusCol,pt.cex=cex,cex=1.3,box.lwd=5)
 segments(unique(modelParam_MovSpeed$gamma),c(100,sessionLines),unique(modelParam_MovSpeed$gamma),c(sessionLines,-5),lty="longdash",lwd=2)
 
@@ -165,6 +194,21 @@ if(saveImage)dev.off()
 #GLMM
 modelParam_MovSpeed$propFront <- totPropFront
 modelParam_MovSpeed$status <- factor(modelParam_MovSpeed$status,levels=status)
+
+#NOT INCLUDING TIME IN FRONT
+
+mod <- lme(inflScore~status,random=~1|session,data=modelParam_MovSpeed)
+anova(mod)
+summary(mod)
+qqnorm(residuals(mod))
+qqline(residuals(mod))
+
+#paiwise status comparison
+pairWise <- glht(mod, linfct = mcp(status = "Tukey"))
+summary(pairWise)
+
+#INCLUDING TIME IN FRONT
+
 mod <- lme(inflScore~(status+propFront),random=~1|session,data=modelParam_MovSpeed)
 anova(mod)
 summary(mod)
@@ -177,7 +221,11 @@ summary(pairWise)
 
 #----MOVEMENT TURN VS MOVEMENT SPEED----
 
-if(saveImage)pdf(file = "figures/Turn_influence_VS_Speed_influence.pdf", width = 20, height = 20)
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_4a.pdf", width = 20, height = 20)
+  if(format=="svg")svg(file="figures/Figure_4a.svg", width = 20, height = 20)
+  if(format=="png")png(file="figures/Figure_4a.png", width = 20, height = 20,units="in",res=300)
+}
 
 par(mfrow=c(1,1), mar=c(5,5,4,2),cex=cex)
 
@@ -200,7 +248,11 @@ if(saveImage)dev.off()
 
 #----MOVEMENT TURN INFLUENCE AS A FUNCTION OF TIME SPENT IN THE FRONT----
 
-if(saveImage)pdf(file = "figures/Turn_influence_VS_position.pdf", width = 20, height = 20)
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_4b.pdf", width = 20, height = 20)
+  if(format=="svg")svg(file="figures/Figure_4b.svg", width = 20, height = 20)
+  if(format=="png")png(file="figures/Figure_4b.png", width = 20, height = 20,units="in",res=300)
+}
 
 par(mfrow=c(1,1), mar=c(5,5,4,2),cex=cex)
 
@@ -220,8 +272,11 @@ if(saveImage)dev.off()
 
 #----MOVEMENT SPEED INFLUENCE AS A FUNCTION OF TIME SPENT IN THE FRONT----
 
-if(saveImage)pdf(file = "figures/Speed_influence_VS_position.pdf", width = 20, height = 20)
-
+if(saveImage){
+  if(format=="pdf")pdf(file = "figures/Figure_4c.pdf", width = 20, height = 20)
+  if(format=="svg")svg(file="figures/Figure_4c.svg", width = 20, height = 20)
+  if(format=="png")png(file="figures/Figure_4c.png", width = 20, height = 20,units="in",res=300)
+}
 par(mfrow=c(1,1), mar=c(5,5,4,2),cex=cex)
 
 x = totPropFront
